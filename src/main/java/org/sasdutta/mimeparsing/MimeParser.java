@@ -7,11 +7,20 @@ import org.apache.james.mime4j.parser.ContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptorBuilder;
 import org.apache.james.mime4j.stream.MimeConfig;
+import tech.blueglacier.email.Attachment;
 import tech.blueglacier.email.Email;
 import tech.blueglacier.parser.CustomContentHandler;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonValue;
+import javax.json.spi.JsonProvider;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 
 public class MimeParser {
@@ -29,9 +38,40 @@ public class MimeParser {
         mime4jParser.setContentHandler(contentHandler);
     }
 
-    public Email getParsedEmail(InputStream input) throws IOException, MimeException {
+    private Email getParsedEmail(InputStream input) throws IOException, MimeException {
         mime4jParser.parse(input);
-        Email email = ((CustomContentHandler) contentHandler).getEmail();
-        return email;
+        return ((CustomContentHandler) contentHandler).getEmail();
+    }
+
+    public JsonObject parse(InputStream input) throws IOException, MimeException {
+        Email email = getParsedEmail(input);
+
+        return Json.createObjectBuilder()
+                .add("to", toJsonValue(email.getToEmailHeaderValue()))
+                .add("cc", toJsonValue(email.getCCEmailHeaderValue()))
+                .add("from", toJsonValue(email.getFromEmailHeaderValue()))
+                .add("subject", toJsonValue(email.getEmailSubject()))
+                .add("plaintext", toJsonValue(streamToString(email.getPlainTextEmailBody())))
+                .build();
+    }
+
+    private static String streamToString(Attachment attachment) {
+        if (attachment == null) return null;
+
+        try (InputStream inputStream = attachment.getIs()) {
+            return new BufferedReader(
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                    .lines()
+                    .collect(Collectors.joining("\n"));
+        } catch (IOException ex) {
+            System.err.println("Failed to close stream " + ex.getMessage());
+            ex.printStackTrace();
+            return "";
+        }
+    }
+
+    private static JsonValue toJsonValue(String value) {
+        if (value == null) return JsonValue.NULL;
+        else return JsonProvider.provider().createValue(value);
     }
 }

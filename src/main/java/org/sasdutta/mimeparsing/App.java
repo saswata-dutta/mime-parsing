@@ -4,15 +4,14 @@
 package org.sasdutta.mimeparsing;
 
 import org.apache.james.mime4j.MimeException;
-import tech.blueglacier.email.Attachment;
-import tech.blueglacier.email.Email;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import javax.json.JsonObject;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
 
 public class App {
 
@@ -24,51 +23,15 @@ public class App {
     private static void run(Path path) {
         try (InputStream input = new BufferedInputStream(Files.newInputStream(path))) {
             MimeParser mimeParser = new MimeParser();
-            Email email = mimeParser.getParsedEmail(input);
-            processEmail(email);
+            JsonObject json = mimeParser.parse(input);
+
+            System.out.println(json.toString());
         } catch (IOException ex) {
             System.err.println("Failed to read file " + path.toString() + " " + ex.getMessage());
             ex.printStackTrace();
         } catch (MimeException ex) {
             System.err.println("Failed to parse mime file " + ex.getMessage());
             ex.printStackTrace();
-        }
-    }
-
-    private static void processEmail(Email email) {
-//        List<Attachment> attachments = email.getAttachments();
-
-        Attachment calendar = email.getCalendarBody();
-        Attachment htmlBody = email.getHTMLEmailBody();
-        Attachment plainText = email.getPlainTextEmailBody();
-
-        String to = email.getToEmailHeaderValue();
-        String cc = email.getCCEmailHeaderValue();
-        String from = email.getFromEmailHeaderValue();
-        String subject = email.getEmailSubject();
-
-        System.out.println(to);
-        System.out.println(cc);
-        System.out.println(from);
-        System.out.println(subject);
-
-        System.out.println(streamToString(calendar));
-        System.out.println(streamToString(htmlBody));
-        System.out.println(streamToString(plainText));
-    }
-
-    private static String streamToString(Attachment attachment) {
-        if (attachment == null) return "";
-
-        try (InputStream inputStream = attachment.getIs()) {
-            return new BufferedReader(
-                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
-        } catch (IOException ex) {
-            System.err.println("Failed to close stream " + ex.getMessage());
-            ex.printStackTrace();
-            return "";
         }
     }
 }
