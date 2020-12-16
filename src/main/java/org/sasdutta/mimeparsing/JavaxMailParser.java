@@ -30,7 +30,15 @@ public class JavaxMailParser {
   }
 
   private static String getSubject(MimeMessage mimeMessage) throws MessagingException, UnsupportedEncodingException {
-    return MimeUtility.decodeWord(mimeMessage.getSubject());
+    String subject = mimeMessage.getSubject();
+    System.out.println(subject);
+    if (subject != null) {
+      // https://en.wikipedia.org/wiki/MIME?oldformat=true#Encoded-Word
+      return subject.startsWith("=?") ?
+          MimeUtility.decodeWord(subject) :
+          MimeUtility.decodeText(subject);
+    }
+    return null;
   }
 
   private static String getRecipients(MimeMessage mimeMessage, Message.RecipientType recipientType) throws MessagingException {
