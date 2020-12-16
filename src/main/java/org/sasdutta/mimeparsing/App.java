@@ -6,6 +6,7 @@ package org.sasdutta.mimeparsing;
 import org.apache.james.mime4j.MimeException;
 
 import javax.json.JsonObject;
+import javax.mail.MessagingException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,23 +16,41 @@ import java.nio.file.Paths;
 
 public class App {
 
-    public static void main(String[] args) {
-        Path path = Paths.get(args[0]);
-        run(path);
-    }
+  public static void main(String[] args) {
+    Path path = Paths.get(args[0]);
+    System.out.println("Mime4j");
+    mime4jParse(path);
 
-    private static void run(Path path) {
-        try (InputStream input = new BufferedInputStream(Files.newInputStream(path))) {
-            MimeParser mimeParser = new MimeParser();
-            JsonObject json = mimeParser.parse(input);
+    System.out.println("JavaX Mail");
+    javaxMailParse(path);
+  }
 
-            System.out.println(json.toString());
-        } catch (IOException ex) {
-            System.err.println("Failed to read file " + path.toString() + " " + ex.getMessage());
-            ex.printStackTrace();
-        } catch (MimeException ex) {
-            System.err.println("Failed to parse mime file " + ex.getMessage());
-            ex.printStackTrace();
-        }
+  private static void mime4jParse(Path path) {
+    try (InputStream input = new BufferedInputStream(Files.newInputStream(path))) {
+      Mime4jParser mimeParser = new Mime4jParser();
+      JsonObject json = mimeParser.parse(input);
+
+      System.out.println(json.toString());
+    } catch (IOException ex) {
+      System.err.println("Failed to read file " + path.toString() + " " + ex.getMessage());
+      ex.printStackTrace();
+    } catch (MimeException ex) {
+      System.err.println("Failed to parse mime file " + ex.getMessage());
+      ex.printStackTrace();
     }
+  }
+
+  private static void javaxMailParse(Path path) {
+    try (InputStream input = new BufferedInputStream(Files.newInputStream(path))) {
+      JsonObject json = JavaxMailParser.parse(input);
+
+      System.out.println(json.toString());
+    } catch (IOException ex) {
+      System.err.println("Failed to read file " + path.toString() + " " + ex.getMessage());
+      ex.printStackTrace();
+    } catch (MessagingException ex) {
+      System.err.println("Failed to parse mime file " + ex.getMessage());
+      ex.printStackTrace();
+    }
+  }
 }

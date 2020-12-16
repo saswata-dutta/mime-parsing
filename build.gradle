@@ -17,6 +17,8 @@ repositories {
 
 dependencies {
     implementation 'tech.blueglacier:email-mime-parser:1.0.5'
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+
     implementation 'org.glassfish:javax.json:1.1.4'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'

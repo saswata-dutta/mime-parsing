@@ -13,8 +13,6 @@ import tech.blueglacier.parser.CustomContentHandler;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonValue;
-import javax.json.spi.JsonProvider;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,12 +20,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
+import static org.sasdutta.mimeparsing.Utils.toJsonValue;
 
-public class MimeParser {
+
+public class Mime4jParser {
     private final ContentHandler contentHandler;
     private final MimeStreamParser mime4jParser;
 
-    public MimeParser() {
+    public Mime4jParser() {
         contentHandler = new CustomContentHandler();
 
         MimeConfig mime4jParserConfig = MimeConfig.DEFAULT;
@@ -68,10 +68,5 @@ public class MimeParser {
             ex.printStackTrace();
             return "";
         }
-    }
-
-    private static JsonValue toJsonValue(String value) {
-        if (value == null) return JsonValue.NULL;
-        else return JsonProvider.provider().createValue(value);
     }
 }
